@@ -1,12 +1,12 @@
 # -*- coding: UTF-8 -*-
 
-from __future__ import division, with_statement
+
 
 #import psyco
 import re
 import codecs
 import random
-from Config import Settings, INDEX_TRANSLITERATION_UNIDECODE, INDEX_TRANSLITERATION_DELETE
+from .Config import Settings, INDEX_TRANSLITERATION_UNIDECODE, INDEX_TRANSLITERATION_DELETE
 from itertools import *
 from PyQt4.QtCore import *
 
@@ -20,23 +20,23 @@ unicode_replacements = [
     # e.g. (u"…",u"...")
 
     #transformations to dots
-    (u"…",u"..."),
+    ("…","..."),
 
     #dash transformations
-    (u"—",u"-"),
+    ("—","-"),
 
     #quote transformations
-    (u"“",u'"'),
-    (u"”",u'"'),
-    (u"’",u"'"),
-    (u"’",u"'"),
-    (u"‘",u"'"),
+    ("“",'"'),
+    ("”",'"'),
+    ("’","'"),
+    ("’","'"),
+    ("‘","'"),
 
     #special character transformations
-    (u"ø",u"o"),
-    (u"ö",u"o"),
-    (u"ü",u"u"),
-    (u"é",u"e"),
+    ("ø","o"),
+    ("ö","o"),
+    ("ü","u"),
+    ("é","e"),
 ]
 
 # strings in the ascii-converted input to be replaced, and their replacement
@@ -71,7 +71,7 @@ class SentenceSplitter(object):
     def __iter__(self):
         p = [0]
         sen = re.compile(Settings.get('sentence_regex'))
-        return ifilter(None, imap(lambda x: self.pars(p, x), sen.finditer(self.string)))
+        return [_f for _f in [self.pars(p, x) for x in sen.finditer(self.string)] if _f]
 
     def pars(self, p, mat):
         p.append(mat.end())
@@ -114,11 +114,11 @@ class LessonMiner(QObject):
             if s is not None:
                 p.append(s)
             else:
-                ret.append(u' '.join(p))
+                ret.append(' '.join(p))
                 p = []
         if len(p) > 0:
-            ret.append(u' '.join(p))
-        return u'\n'.join(ret)
+            ret.append(' '.join(p))
+        return '\n'.join(ret)
 
     def __iter__(self):
         if self.lessons is None:
@@ -144,7 +144,7 @@ class LessonMiner(QObject):
                 try:
                     ascii_line = ascii_line.decode('ascii')
                 except UnicodeEncodeError:
-                    ascii_line = filter(lambda c : ord(c) < 128, ascii_line)
+                    ascii_line = [c for c in ascii_line if ord(c) < 128]
 
             #replaces any 1+ adjacent whitespace chars (spaces, tabs, newlines, etc) with one ascii space
             if Settings.get('single_space_only'):
@@ -170,7 +170,7 @@ class LessonMiner(QObject):
             #the current line is empty: insert empty line
             #or the current line and previous line both nonempty: need to insert empty line between them
             if (current_line_empty or not previous_line_empty) and len(p) > 0:
-                ps.append(SentenceSplitter(u" ".join(p)))
+                ps.append(SentenceSplitter(" ".join(p)))
                 p = []
 
             if not current_line_empty:
@@ -178,5 +178,5 @@ class LessonMiner(QObject):
 
             previous_line_empty = current_line_empty
         if len(p) > 0:
-            ps.append(SentenceSplitter(u" ".join(p)))
+            ps.append(SentenceSplitter(" ".join(p)))
         return ps

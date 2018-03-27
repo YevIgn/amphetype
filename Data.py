@@ -1,10 +1,10 @@
-from __future__ import division, with_statement
+
 
 from itertools import *
 import bisect
 import sqlite3
 import re
-from Config import Settings
+from .Config import Settings
 
 class Statistic(list):
     def __init__(self):
@@ -20,7 +20,7 @@ class Statistic(list):
         return cmp(self.median(), other.median())
 
     def measurement(self):
-        return self.trimmed_average(len(self), map(lambda x: (x, 1), self))
+        return self.trimmed_average(len(self), [(x, 1) for x in self])
 
     def median(self):
         l = len(self)

@@ -1,14 +1,14 @@
-from __future__ import with_statement, division
+
 
 import time
 from itertools import *
 import operator
 
-from Data import DB
-from Config import *
-from QtUtil import *
+from .Data import DB
+from .Config import *
+from .QtUtil import *
 
-import Widgets.Plotters as Plotters
+from . Widgets import Plotters
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -110,12 +110,12 @@ class PerformanceHistory(QScrollArea):
 
     def updateGraph(self):
         pc = Settings.get('graph_what')
-        y = map(lambda x: x[pc], self.model.rows)
+        y = [x[pc] for x in self.model.rows]
 
         if Settings.get("chrono_x"):
-            x = map(lambda x: x[1], self.model.rows)
+            x = [x[1] for x in self.model.rows]
         else:
-            x = range(len(y))
+            x = list(range(len(y)))
             x.reverse()
 
         if Settings.get("dampen_graph"):
@@ -189,7 +189,7 @@ class PerformanceHistory(QScrollArea):
 
         sql = sql % (where, group, n)
 
-        self.model.setData(map(list, DB.fetchall(sql)))
+        self.model.setData(list(map(list, DB.fetchall(sql))))
         self.updateGraph()
 
     def doubleClicked(self, idx):

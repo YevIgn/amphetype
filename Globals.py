@@ -1,3 +1,3 @@
-from Config import *
+from .Config import *
 
 pendingLessons = []

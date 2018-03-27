@@ -1,4 +1,4 @@
-from Config import Settings
+from .. Config import Settings
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 import math
@@ -76,4 +76,3 @@ class Plotter(QGraphicsView):
     def setScene(self, scene):
         QGraphicsView.setScene(self, scene)
         self.fitInView(scene.sceneRect())
-

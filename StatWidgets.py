@@ -1,10 +1,10 @@
-from __future__ import division, with_statement
+
 
 import time
 
-from Data import DB
-from QtUtil import *
-from Config import *
+from .Data import DB
+from .QtUtil import *
+from .Config import *
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -26,7 +26,7 @@ class WordModel(AmphModel):
         return self.words
 
     def setData(self, words):
-        self.words = map(list, words)
+        self.words = list(map(list, words))
         self.reset()
 
 class StringStats(QScrollArea):

@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-from __future__ import with_statement, division
+
 
 import platform
 import collections
@@ -9,13 +9,13 @@ import re
 import random
 import difflib
 
-import Globals
-from Data import Statistic, DB
-from Config import *
+from . import Globals
+from .Data import Statistic, DB
+from .Config import *
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-from QtUtil import *
+from .QtUtil import *
 
 #minimum time we assume to take to count char (to prevent division by zero)
 MINIMUM_CHAR_TYPING_TIME = 0.000001     #equivalent to 3333.33wpm
@@ -42,7 +42,7 @@ Or None if no chars are to be automatically inserted.'''
     automatically_inserted_chars = ""
     if Settings.get('use_automatic_other_insertion'):
         automatically_inserted_chars += re.escape(Settings.get('automatic_other_insertion'))
-    for s,c in ('automatic_space_insertion',u" "),('automatic_return_insertion',u"\n"):
+    for s,c in ('automatic_space_insertion'," "),('automatic_return_insertion',"\n"):
         if Settings.get(s):
             automatically_inserted_chars += re.escape(c)
 
@@ -50,7 +50,7 @@ Or None if no chars are to be automatically inserted.'''
 
 def html_font_color(color,string):
     '''Returns html unicode string representing string with font color color'''
-    return u'<font color="{0}">{1}</font>'.format(color,string)
+    return '<font color="{0}">{1}</font>'.format(color,string)
 
 def html_color_strs(strs,new_colors,default_color=None):
     '''strs is list of typically 1 character strings from doing list(string)
@@ -96,7 +96,7 @@ def disagreements(s,t,case_sensitive=True,full_length=False):
     if not case_sensitive:
         s = s.lower()
         t = t.lower()
-    for i in xrange(min(len(s),len(t))):
+    for i in range(min(len(s),len(t))):
         if s[i] != t[i]:
             dlist.append(i)
 
@@ -133,7 +133,7 @@ e.g. linearly_interpolate([3,5,7,None,None,None,None,8,9,None,None,5,None,None,N
         else:
             non_interpolation_dist += 1
             average_change = 1.0*(e-last_non_interpolation)/non_interpolation_dist
-            for i in xrange(1,non_interpolation_dist):
+            for i in range(1,non_interpolation_dist):
                 #interpolates over previous zeroes
                 yield last_non_interpolation + i*average_change
             yield e
@@ -168,7 +168,7 @@ If text not specified, the plain text (to unicode) from the typer is used.  This
 
 If func specified, uses that function for the text setting.  Otherwise, uses typer.setPlainText'''
     if text == None:
-        text = unicode(typer.toPlainText())
+        text = str(typer.toPlainText())
 
     if func == None:
         func = typer.setPlainText
@@ -213,7 +213,7 @@ If the first char is a breaking space, replaces it with non-breaking space."'''
     #False if current space in sequence should be non-breaking
     breaking = None
     result = list(li)
-    for i in xrange(len(li)-1,-1,-1):
+    for i in range(len(li)-1,-1,-1):
         #loops backward to ensure last space in any sequence is non-breaking
         if breaking == None:
             #check if we're at the start (i.e. the highest index of) of a sequence
@@ -245,7 +245,7 @@ def update_typer_html(typer,errors):
 
 Given a Typer, updates its html based on settings (not including invisible mode)'''
     #dict : str -> str ; original and displacement strs in error region (for easier display)
-    v = unicode(typer.toPlainText())
+    v = str(typer.toPlainText())
     v_err_replacements = {}
     if Settings.get('text_area_replace_spaces'):
         #if want to make replacements change spaces in text area as well (risky!)
@@ -260,7 +260,7 @@ Given a Typer, updates its html based on settings (not including invisible mode)
     v_replaced_list = html_list_process_spaces(v_replaced_list)
 
     if Settings.get("show_text_area_mistakes"):
-        error_colors = dict(map(lambda i : (i,Settings.get('text_area_mistakes_color')),errors))
+        error_colors = dict([(i,Settings.get('text_area_mistakes_color')) for i in errors])
         v_replaced_list = replace_at_locs(v_replaced_list,v_err_replacements,errors)
 
     v_colored_list = html_color_strs(v_replaced_list,error_colors)
@@ -369,9 +369,9 @@ class Typer(QTextEdit):
         if self.target is None or self.editflag:
             return
 
-        v = unicode(self.toPlainText())
+        v = str(self.toPlainText())
         if self.when[0] == 0:
-            space = len(v) > 0 and v[-1] == u" "
+            space = len(v) > 0 and v[-1] == " "
             req = Settings.get('req_space')
 
             self.editflag = True
@@ -391,7 +391,7 @@ class Typer(QTextEdit):
                 self.when[0] = -1
 
         y = 0
-        for y in xrange(min(len(v), len(self.target)), -1, -1):
+        for y in range(min(len(v), len(self.target)), -1, -1):
             if v[0:y] == self.target[0:y]:
                 break
         lcd = v[0:y]
@@ -435,7 +435,7 @@ class Typer(QTextEdit):
                     self.setPalette(self.palettes['wrong'])
     def getMistakes(self):
         inv = collections.defaultdict(lambda: 0)
-        for p, m in self.mistakes.iteritems():
+        for p, m in list(self.mistakes.items()):
             inv[m] += 1
         return inv
 
@@ -445,12 +445,12 @@ class Typer(QTextEdit):
         return self.when[self.where]-self.when[0]
 
     def getStats(self):
-        user_entered_data = filter(lambda letter : letter and not letter.automatically_inserted, self.data)
+        user_entered_data = [letter for letter in self.data if letter and not letter.automatically_inserted]
         when = list(linearly_interpolate(letter.when for letter in user_entered_data))
             # my refactoring mean this may never get hit, I'm not sure what when and times are for, so i'm not sure if I'm breaking some edge case here??
 
         times = []
-        for i in xrange(len(when)-1):
+        for i in range(len(when)-1):
             #prevent division by zero when 0 time
             time = when[i+1] - when[i]
             times.append(max(time, MINIMUM_CHAR_TYPING_TIME))
@@ -466,7 +466,7 @@ class Typer(QTextEdit):
 
     def getAccuracy(self):
         if self.where > 0:
-            return 1.0 - len(filter(None, self.mistake)) / self.where
+            return 1.0 - len([_f for _f in self.mistake if _f]) / self.where
         else:
             return 0
 
@@ -480,7 +480,7 @@ class Typer(QTextEdit):
         return 12 / self.getRawSpeed()
 
     def getViscosity(self):
-        return sum(map(lambda x: ((x-self.getRawSpeed())/self.getRawSpeed())**2, self.times)) / self.where
+        return sum([((x-self.getRawSpeed())/self.getRawSpeed())**2 for x in self.times]) / self.where
 
     def activate_invisibility(self):
         '''Turns on invisible mode'''
@@ -522,7 +522,7 @@ class Quizzer(QWidget):
     def updateLabel(self,position,errors):
         '''Populates the label with colors depending on current position and errors.'''
         #dict : str -> str ; original and displacement strs in error region (for easier display)
-        err_replacements = {"\n":u"{0}<BR>".format(Settings.get('label_return_symbol'))}
+        err_replacements = {"\n":"{0}<BR>".format(Settings.get('label_return_symbol'))}
 
         colors = {}  #dict : int -> str, mapping errors to color
 
@@ -566,7 +566,7 @@ Returns the new text_strs list (for assignment).'''
                                        'label_position_space_char')
 
         htmlized = "".join(html_color_strs(text_strs,colors))
-        htmlized = htmlized.replace(u"\n", u"{0}<BR>".format(Settings.get('label_return_symbol')))
+        htmlized = htmlized.replace("\n", "{0}<BR>".format(Settings.get('label_return_symbol')))
 
         self.label.setText(htmlized)
 
@@ -574,14 +574,14 @@ Returns the new text_strs list (for assignment).'''
         if self.typer.target is None or self.typer.editflag:
             return
 
-        v = unicode(self.typer.toPlainText())
+        v = str(self.typer.toPlainText())
 
         if Settings.get('allow_mistakes') and len(v) >= len(self.typer.target):
             v = self.typer.target
 
         if self.typer.start_time == None and Settings.get('req_space'):
             #space is required before beginning the passage proper
-            if v == u" ":
+            if v == " ":
                 #the first char typed was space
                 #the first space only starts the session; clear the typer
                 set_typer_text(self.typer,"",cursor_position=0)
@@ -600,7 +600,7 @@ Returns the new text_strs list (for assignment).'''
                 diff = list(difflib.Differ().compare(list(self.typer.getWaitText()),list(v)))
 
                 #the vast majority of the wait text is still there
-                wait_text_present = len(filter(lambda line : line[0] == "-", diff)) <= 1
+                wait_text_present = len([line for line in diff if line[0] == "-"]) <= 1
 
                 if wait_text_present:
                     #leave only the additional typed text
@@ -624,7 +624,7 @@ Returns the new text_strs list (for assignment).'''
 
             #invalidates all farther-out times that might have previously been written
             if old_str_position < self.typer.farthest_data:
-                for i in xrange(old_str_position+1, self.typer.farthest_data + 1):
+                for i in range(old_str_position+1, self.typer.farthest_data + 1):
                     self.typer.data[i].when = None
 
             self.typer.farthest_data = old_str_position
@@ -646,7 +646,7 @@ Returns the new text_strs list (for assignment).'''
 
         #TODO: refactor so this doesn't rely on text setting then re-calling gimmick
         #Prevent advancement until user correctly types space
-        if Settings.get('ignore_until_correct_space') and self.typer.target[old_str_position] == u" " and old_str_position in errors:
+        if Settings.get('ignore_until_correct_space') and self.typer.target[old_str_position] == " " and old_str_position in errors:
             #gets rid of new character (sets as plaintext)
             set_typer_text(self.typer,v[:old_str_position] + v[old_str_position+1:],cursor_position = old_position - 1)
             self.checkText()    #recovers the formatting
@@ -682,7 +682,7 @@ Returns the new text_strs list (for assignment).'''
 
     def setText(self, text):
         self.text = text
-        self.label.setText(self.text[2].replace(u"\n", u"{0}\n".format(Settings.get('label_return_symbol'))))
+        self.label.setText(self.text[2].replace("\n", "{0}\n".format(Settings.get('label_return_symbol'))))
         tempText = self.AddSymbols(text[2])
         tempText = tempText.replace('  ', ' ')
         self.text = (text[0], text[1], tempText)
@@ -728,10 +728,10 @@ Returns the new text_strs list (for assignment).'''
 
         def gen_tup(s, e):
             perch = sum(perCharacterTimes[s:e])/(e-s)
-            visc = sum(map(lambda x: ((x-perch)/perch)**2, perCharacterTimes[s:e]))/(e-s)
-            return (text[s:e], perch, len(filter(None, perCharacterMistakes[s:e])), visc)
+            visc = sum([((x-perch)/perch)**2 for x in perCharacterTimes[s:e]])/(e-s)
+            return (text[s:e], perch, len([_f for _f in perCharacterMistakes[s:e] if _f]), visc)
 
-        for tri, t, m, v in [gen_tup(i, i+3) for i in xrange(0, self.typer.where-2)]:
+        for tri, t, m, v in [gen_tup(i, i+3) for i in range(0, self.typer.where-2)]:
             stats[tri].append(t, m > 0)
             visc[tri].append(v)
 
@@ -809,10 +809,10 @@ Returns the new text_strs list (for assignment).'''
 
         def gen_tup(s, e):
             perch = sum(times[s:e])/(e-s)
-            visc = sum(map(lambda x: ((x-perch)/perch)**2, times[s:e]))/(e-s)
-            return (text[s:e], perch, len(filter(None, mis[s:e])), visc)
+            visc = sum([((x-perch)/perch)**2 for x in times[s:e]])/(e-s)
+            return (text[s:e], perch, len([_f for _f in mis[s:e] if _f]), visc)
 
-        for tri, t, m, v in [gen_tup(i, i+3) for i in xrange(0, chars-2)]:
+        for tri, t, m, v in [gen_tup(i, i+3) for i in range(0, chars-2)]:
             stats[tri].append(t, m > 0)
             visc[tri].append(v)
 
@@ -827,7 +827,7 @@ Returns the new text_strs list (for assignment).'''
         now = time.time()
         elapsed, text, chars, times, mis, mistakes = self.typer.getStats()
 
-        num_mistake_positions = len(filter(None, mis))
+        num_mistake_positions = len([_f for _f in mis if _f])
         accuracy = 1.0 - num_mistake_positions / chars
         spc = elapsed / chars
         wpm = 12.0/spc
@@ -845,7 +845,7 @@ Returns the new text_strs list (for assignment).'''
             optimistic_wpm = 12.0*text_len/elapsed
             optimistic_message = " ; Upper-Bound: {0}".format(results_str(optimistic_wpm,100*optimistic_accuracy))
 
-        viscosity = sum(map(lambda x: ((x-spc)/spc)**2, times)) / chars
+        viscosity = sum([((x-spc)/spc)**2 for x in times]) / chars
 
         DB.execute('insert into result (w,text_id,source,wpm,accuracy,viscosity) values (?,?,?,?,?,?)',
                    (now, self.text[0], self.text[1], 12.0/spc, accuracy, viscosity))
@@ -866,10 +866,10 @@ Returns the new text_strs list (for assignment).'''
 
         def gen_tup(s, e):
             perch = sum(times[s:e])/(e-s)
-            visc = sum(map(lambda x: ((x-perch)/perch)**2, times[s:e]))/(e-s)
-            return (text[s:e], perch, len(filter(None, mis[s:e])), visc)
+            visc = sum([((x-perch)/perch)**2 for x in times[s:e]])/(e-s)
+            return (text[s:e], perch, len([_f for _f in mis[s:e] if _f]), visc)
 
-        for tri, t, m, v in [gen_tup(i, i+3) for i in xrange(0, chars-2)]:
+        for tri, t, m, v in [gen_tup(i, i+3) for i in range(0, chars-2)]:
             stats[tri].append(t, m > 0)
             visc[tri].append(v)
 
@@ -920,7 +920,7 @@ Returns the new text_strs list (for assignment).'''
                 return 3
             return 2
         vals = []
-        for k, s in stats.iteritems():
+        for k, s in list(stats.items()):
             v = visc[k].median()
             vals.append((s.median(), v*100.0, now, len(s), s.flawed(), type(k), k))
         return vals
@@ -929,12 +929,12 @@ Returns the new text_strs list (for assignment).'''
         DB.executemany_('''insert into statistic
             (time, viscosity, w, count, mistakes, type, data) values (?, ?, ?, ?, ?, ?, ?)''', vals)
         DB.executemany_('insert into mistake (w, target, mistake, count) values (?, ?, ?, ?)',
-                [(now, k[0], k[1], v) for k, v in self.typer.getMistakes().iteritems()])
+                [(now, k[0], k[1], v) for k, v in list(self.typer.getMistakes().items())])
 
     def createLessons(self, vals):
         # need to add of type #3 to these lessons
         # get words
-        words = filter(lambda x: x[5] == 2, vals)
+        words = [x for x in vals if x[5] == 2]
         if len(words) == 0:
             self.emit(SIGNAL("wantText"))
         else:
@@ -947,12 +947,12 @@ Returns the new text_strs list (for assignment).'''
             if i < (len(words) -1 // 8):
                 i = (len(words) - 1) // 8
                 i = i + 1
-            wordLessons = map(lambda x: x[6], words[0:i])
+            wordLessons = [x[6] for x in words[0:i]]
 
-            phrases = filter(lambda x: x[5] == 3, vals)
+            phrases = [x for x in vals if x[5] == 3]
             phrases.sort(key=lambda x: (x[1], x[4]), reverse=True)
             i = len(wordLessons)
-            phraseLessons = map(lambda x: x[6], phrases[0: i])
+            phraseLessons = [x[6] for x in phrases[0: i]]
             self.emit(SIGNAL("wantReview"), wordLessons + phraseLessons)
 
     def lessThanSpeed(self):

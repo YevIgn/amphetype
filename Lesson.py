@@ -1,20 +1,20 @@
-from __future__ import with_statement, division
+
 
 from itertools import *
 import random
 import time
 import codecs
-from Data import DB
-import Globals
+from .Data import DB
+from . import Globals
 
 try:
     import editdist
 except ImportError:
-    import editdist_fake as editdist
+    from . import editdist_fake as editdist
 
-import Text
-from Config import *
-from QtUtil import *
+from . import Text
+from .Config import *
+from .QtUtil import *
 
 class StringListWidget(QTextEdit):
     def __init__(self, *args):
@@ -25,10 +25,10 @@ class StringListWidget(QTextEdit):
         self.connect(self, SIGNAL("textChanged()"), self.textChanged)
 
     def addList(self, lst):
-        self.append(u' '.join(lst))
+        self.append(' '.join(lst))
 
     def getList(self):
-        return unicode(self.toPlainText()).split()
+        return str(self.toPlainText()).split()
 
     def addFromTyped(self):
         words = [x[0] for x in DB.fetchall('select distinct data from statistic where type = 2 order by random()')]
@@ -36,12 +36,12 @@ class StringListWidget(QTextEdit):
 
     def addFromFile(self):
         filen = QFileDialog.getOpenFileName()
-        if filen == u'':
+        if filen == '':
             return
         try:
             with codecs.open(filen, "r", "utf_8_sig") as f:
                 words = f.read().split()
-        except Exception, e:
+        except Exception as e:
             QMessageBox.warning(self, "Couldn't Read File", str(e))
             return
         random.shuffle(words)
@@ -58,18 +58,17 @@ class StringListWidget(QTextEdit):
             if len(control) == 0:
                 return
             if w == 'e': # encompassing
-                stream = map(lambda x: (sum([x.count(c) for c in control]), x), words)
-                print "str:", list(stream)[0:10]
-                preres = list(islice(ifilter(lambda x: x[0] > 0, stream), 4*n))
-                print "pre:", preres
+                stream = [(sum([x.count(c) for c in control]), x) for x in words]
+                print(("str:", list(stream)[0:10]))
+                preres = list(islice([x for x in stream if x[0] > 0], 4*n))
+                print(("pre:", preres))
                 preres.sort(key=lambda x: x[0], reverse=True)
-                words = map(lambda x: x[1], preres)
+                words = [x[1] for x in preres]
             else: # similar
-                words = ifilter(lambda x:
-                    0 < min([
+                words = [x for x in words if 0 < min([
                             editdist.distance(x.encode('latin1', 'replace'),
                                               y.encode('latin1', 'replace'))/max(len(y), len(x))
-                                for y in control]) < .26, words)
+                                for y in control]) < .26]
 
         if Settings.get('str_clear') == 'r': # replace = clear
             self.clear()
@@ -133,7 +132,7 @@ class LessonGenerator(QScrollArea):
 
     def wantReview(self, words):
         Globals.pendingLessons = Globals.pendingLessons + self.generateLesson(words)
-        print Globals.pendingLessons
+        print((Globals.pendingLessons))
         if Globals.pendingLessons:
             self.emit(SIGNAL("newReview"), Globals.pendingLessons.pop())
         else:
@@ -159,16 +158,16 @@ class LessonGenerator(QScrollArea):
 
             if mix == 'm': # mingle
                 random.shuffle(sen)
-            sentences.append(u' '.join(sen))
+            sentences.append(' '.join(sen))
         #print sentences
         return sentences
 
     def acceptLessons(self, name=None):
-        name = unicode(self.les_name.text())
+        name = str(self.les_name.text())
         if len(name.strip()) == 0:
             name = "<Lesson %s>" % time.strftime("%y-%m-%d %H:%M")
 
-        lessons = filter(None, [x.strip() for x in unicode(self.sample.toPlainText()).split("\n\n")])
+        lessons = [_f for _f in [x.strip() for x in str(self.sample.toPlainText()).split("\n\n")] if _f]
 
         if len(lessons) == 0:
             QMessageBox.information(self, "No Lessons", "Generate some lessons before you try to add them!")

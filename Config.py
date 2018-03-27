@@ -1,9 +1,9 @@
 # -*- coding: UTF-8 -*-
 
-from __future__ import with_statement
 
-import cPickle
-from QtUtil import *
+
+import pickle
+from .QtUtil import *
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 import getpass
@@ -49,9 +49,9 @@ class AmphSettings(QSettings):
             "text_area_mistakes_color":"#a43434",
             "show_text_area_mistakes":True,
             "single_space_only":True,
-            "text_area_mistakes_space_char":u"∙", #in html, "&#8729;",
+            "text_area_mistakes_space_char":"∙", #in html, "&#8729;",
             "text_area_replace_spaces":False,
-            'text_area_return_replacement':u"↵",
+            'text_area_return_replacement':"↵",
             'text_area_replace_return':True,
             'ignore_until_correct_space':False,
             'automatic_space_insertion':False,
@@ -60,11 +60,11 @@ class AmphSettings(QSettings):
             'use_automatic_other_insertion':False,
             'adjacent_errors_not_counted':True,
             'case_sensitive':True,
-            "label_return_symbol":u"↵",
-            "label_mistakes_space_char":u"∙",
-            "label_position_space_char":u"∙",
-            "label_position_with_mistakes_space_char":u"∙",
-            "label_position_with_prior_mistake_space_char":u"∙",
+            "label_return_symbol":"↵",
+            "label_mistakes_space_char":"∙",
+            "label_position_space_char":"∙",
+            "label_position_with_mistakes_space_char":"∙",
+            "label_position_with_prior_mistake_space_char":"∙",
             "label_replace_spaces_in_mistakes":True,
             "label_replace_spaces_in_position":False,
             "label_replace_spaces_in_position_with_mistakes":False,
@@ -164,9 +164,9 @@ class AmphSettings(QSettings):
 
     def get(self, k):
         v = self.value(k)
-        if not v.isValid():
+        if v is None or not v.isValid():
             return self.defaults[k]
-        return cPickle.loads(str(v.toString()))
+        return pickle.loads(str(v.toString()))
 
     def getFont(self, k):
         qf = QFont()
@@ -183,7 +183,7 @@ class AmphSettings(QSettings):
         p = self.get(k)
         if p == v:
             return
-        self.setValue(k, QVariant(cPickle.dumps(v)))
+        self.setValue(k, QVariant(pickle.dumps(v)))
         self.emit(SIGNAL("change"))
         self.emit(SIGNAL("change_" + k), v)
 
@@ -199,7 +199,7 @@ class SettingsColor(AmphButton):
         color = QColorDialog.getColor(Settings.getColor(self.key_), self)
         if not color.isValid():
             return
-        Settings.set(self.key_, unicode(color.name()))
+        Settings.set(self.key_, str(color.name()))
         self.updateIcon()
 
     def updateIcon(self):
@@ -216,7 +216,7 @@ class SettingsEdit(AmphEdit):
         validator = None
         if isinstance(val, float):
             validator = QDoubleValidator
-        elif isinstance(val, (int, long)):
+        elif isinstance(val, int):
             validator = QIntValidator
         if validator is None:
             self.fmt = lambda x: x
@@ -235,7 +235,7 @@ class SettingsCombo(QComboBox):
         prev = Settings.get(setting)
         self.idx2item = []
         for i in range(len(lst)):
-            if isinstance(lst[i], basestring):
+            if isinstance(lst[i], str):
                 # not a tuple, use index as key
                 k, v = i, lst[i]
             else:
@@ -275,7 +275,7 @@ class PreferenceWidget(QWidget):
             SettingsCheckBox('adjacent_errors_not_counted', "Adjacent errors are counted as part of the same (i.e. only one) error"),
             SettingsCheckBox('case_sensitive', "Case sensitive"),
             [AmphGridLayout([["AUTOMATICALLY INSERT:", SettingsCheckBox('automatic_space_insertion', "spaces"),SettingsCheckBox('automatic_return_insertion', "newlines")],
-                             ["  - Other characters:", SettingsEdit('automatic_other_insertion',data_type=unicode),SettingsCheckBox('use_automatic_other_insertion', "Use")],
+                             ["  - Other characters:", SettingsEdit('automatic_other_insertion',data_type=str),SettingsCheckBox('use_automatic_other_insertion', "Use")],
                 [1+1j,1+2j,2+1j,2+2j],
             ]), None],
 
@@ -298,14 +298,14 @@ class PreferenceWidget(QWidget):
                 ["INVISIBLE MODE", SettingsColor('quiz_invisible_color', "Foreground"), SettingsColor('quiz_invisible_bd', "Foreground"), SettingsCheckBox('quiz_invisible', "Enabled")],
                 ["INPUT MISTAKES"],
                 ["Color", SettingsColor('text_area_mistakes_color','Foreground'),SettingsCheckBox('show_text_area_mistakes', "Show")],
-                ["Space char",SettingsEdit('text_area_mistakes_space_char',data_type=unicode), SettingsCheckBox('text_area_replace_spaces', "Use")],
-                ["Return char",SettingsEdit('text_area_return_replacement',data_type=unicode), SettingsCheckBox('text_area_replace_return', "Use")],
+                ["Space char",SettingsEdit('text_area_mistakes_space_char',data_type=str), SettingsCheckBox('text_area_replace_spaces', "Use")],
+                ["Return char",SettingsEdit('text_area_return_replacement',data_type=str), SettingsCheckBox('text_area_replace_return', "Use")],
                 ["TEXT DISPLAY"," "," ","Space char"],
-                ["Mistakes", SettingsColor('label_mistakes_color','Foreground'),SettingsCheckBox('show_label_mistakes', "Show"), SettingsEdit('label_mistakes_space_char',data_type=unicode), SettingsCheckBox("label_replace_spaces_in_mistakes", "Use")],
-                ["Position", SettingsColor('label_position_color','Foreground'),SettingsCheckBox('show_label_position', "Show"), SettingsEdit('label_position_space_char',data_type=unicode), SettingsCheckBox("label_replace_spaces_in_position", "Use")],
-                ["  - with mistakes", SettingsColor('label_position_with_mistakes_color','Foreground'),SettingsCheckBox('show_label_position_with_mistakes', "Use"), SettingsEdit('label_position_with_mistakes_space_char',data_type=unicode), SettingsCheckBox("label_replace_spaces_in_position_with_mistakes", "Use")],
-                ["  - next to mistake", SettingsColor('label_position_with_prior_mistake_color','Foreground'),SettingsCheckBox('show_label_position_with_prior_mistake', "Use"), SettingsEdit('label_position_with_prior_mistake_space_char',data_type=unicode), SettingsCheckBox("label_replace_spaces_in_position_with_prior_mistake", "Use")],
-                ["Return char",SettingsEdit('label_return_symbol',data_type=unicode)],
+                ["Mistakes", SettingsColor('label_mistakes_color','Foreground'),SettingsCheckBox('show_label_mistakes', "Show"), SettingsEdit('label_mistakes_space_char',data_type=str), SettingsCheckBox("label_replace_spaces_in_mistakes", "Use")],
+                ["Position", SettingsColor('label_position_color','Foreground'),SettingsCheckBox('show_label_position', "Show"), SettingsEdit('label_position_space_char',data_type=str), SettingsCheckBox("label_replace_spaces_in_position", "Use")],
+                ["  - with mistakes", SettingsColor('label_position_with_mistakes_color','Foreground'),SettingsCheckBox('show_label_position_with_mistakes', "Use"), SettingsEdit('label_position_with_mistakes_space_char',data_type=str), SettingsCheckBox("label_replace_spaces_in_position_with_mistakes", "Use")],
+                ["  - next to mistake", SettingsColor('label_position_with_prior_mistake_color','Foreground'),SettingsCheckBox('show_label_position_with_prior_mistake', "Use"), SettingsEdit('label_position_with_prior_mistake_space_char',data_type=str), SettingsCheckBox("label_replace_spaces_in_position_with_prior_mistake", "Use")],
+                ["Return char",SettingsEdit('label_return_symbol',data_type=str)],
                 ["WIDGETS"],
                 ["Background",SettingsColor('widgets_background_color', "Background")],
                 ["Foreground", SettingsColor('widgets_text_color', "Foreground")],
@@ -343,7 +343,7 @@ class PreferenceWidget(QWidget):
 
     def setFont(self):
         font, ok = QFontDialog.getFont(Settings.getFont('typer_font'), self)
-        Settings.set("typer_font", unicode(font.toString()))
+        Settings.set("typer_font", str(font.toString()))
         self.updateFont()
 
     def updateFont(self):
