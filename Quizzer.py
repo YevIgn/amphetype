@@ -268,6 +268,8 @@ class Quizzer(QWidget):
         self.text = (text[0], text[1], tempText)
 
         text = self.text[2].replace(u"\n", u"↵\n")
+        text = Qt.escape(text)
+
         self.label.setText(text)
         self.typer.setTarget(self.text[2], self.text[1])
         self.typer.setFocus()
