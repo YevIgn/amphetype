@@ -268,10 +268,6 @@ class Quizzer(QWidget):
         self.text = (text[0], text[1], tempText)
 
         text = self.text[2].replace(u"\n", u"↵\n")
-        zero_width_space = u'\u200B'
-        visible_space = u'\u00B7'
-        text = text.replace(" ",zero_width_space+visible_space)
-        # text = zws
         self.label.setText(text)
         self.typer.setTarget(self.text[2], self.text[1])
         self.typer.setFocus()
