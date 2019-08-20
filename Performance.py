@@ -151,7 +151,7 @@ class PerformanceHistory(QWidget):
             where.append('s.discount is not null')
         else:
             s = self.cb_source.itemData(self.cb_source.currentIndex())
-            where.append('r.source = %d' % s.toInt()[0])
+            where.append('r.source = %d' % s)
 
         if len(where) > 0:
             where = 'where ' + ' and '.join(where)

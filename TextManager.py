@@ -103,7 +103,7 @@ A typing program that not only measures your speed and progress, but also gives 
                     where w >= ? and type = 1
                     group by data""", (hist, )).fetchall()) #[(t, (m, c)) for t, m, c in
 
-        g = tri.values()
+        g = list(tri.values())
         if len(g) == 0:
             return lambda x: 1
         g.sort(reverse=True)

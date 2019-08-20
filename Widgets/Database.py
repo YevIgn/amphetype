@@ -71,7 +71,7 @@ Results: %d
 Analysis data: %d (%d keys, %d trigrams, %d words)
   %d characters and %d words typed total\n'''+
   ("First result was %.2f days ago.\n" % ((time.time()-n_first)/86400.0)),
-            tuple([n_text, n_res, sum(map(lambda x: x[0], n_words))] + map(lambda x: x[0], n_words) +
+            tuple([n_text, n_res, sum(map(lambda x: x[0], n_words))] + list(map(lambda x: x[0], n_words)) +
             [n_words[0][1], n_words[2][1]]), True))
 
     def cleanup(self):

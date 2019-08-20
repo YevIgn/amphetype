@@ -1,6 +1,6 @@
 from __future__ import with_statement, division
 
-from itertools import *
+from itertools import islice
 import random
 import time
 import codecs
@@ -60,12 +60,12 @@ class StringListWidget(QTextEdit):
             if w == 'e': # encompassing
                 stream = list(map(lambda x: (sum([x.count(c) for c in control]), x), words))
                 print("str:", list(stream)[0:10])
-                preres = list(islice(ifilter(lambda x: x[0] > 0, stream), 4*n))
+                preres = list(islice(filter(lambda x: x[0] > 0, stream), 4*n))
                 print("pre:", preres)
                 preres.sort(key=lambda x: x[0], reverse=True)
                 words = list(map(lambda x: x[1], preres))
             else: # similar
-                words = ifilter(lambda x:
+                words = filter(lambda x:
                     0 < min([
                             editdist.distance(x.encode('latin1', 'replace'),
                                               y.encode('latin1', 'replace'))/max(len(y), len(x))
@@ -168,7 +168,7 @@ class LessonGenerator(QWidget):
         if len(name.strip()) == 0:
             name = "<Lesson %s>" % time.strftime("%y-%m-%d %H:%M")
 
-        lessons = [v for v in [x.strip() for x in unicode(self.sample.toPlainText()).split("\n\n")] if v]
+        lessons = [v for v in [x.strip() for x in str(self.sample.toPlainText()).split("\n\n")] if v]
 
         if len(lessons) == 0:
             QMessageBox.information(self, "No Lessons", "Generate some lessons before you try to add them!")

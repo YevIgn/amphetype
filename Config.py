@@ -93,9 +93,9 @@ class AmphSettings(QSettings):
 
     def get(self, k):
         v = self.value(k)
-        if v is None or not v.isValid():
+        if v is None:
             return self.defaults[k]
-        return json.loads(str(v.toString()))
+        return json.loads(v)
 
     def getFont(self, k):
         qf = QFont()
@@ -109,7 +109,7 @@ class AmphSettings(QSettings):
         p = self.get(k)
         if p == v:
             return
-        self.setValue(k, QVariant(json.dumps(v)))
+        self.setValue(k, json.dumps(v))
         self.emit(SIGNAL("change"))
         self.emit(SIGNAL("change_" + k), v)
 
