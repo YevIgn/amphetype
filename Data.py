@@ -104,6 +104,7 @@ class AmphDatabase(sqlite3.Connection):
             self.newDB()
 
     def __init__(self, *args):
+        print("### args %s" % (args, ))
         sqlite3.Connection.__init__(self, *args)
 
         self.setRegex("")

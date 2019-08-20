@@ -124,7 +124,7 @@ class Typer(QTextEdit):
         if self.target is None or self.editflag:
             return
 
-        v = unicode(self.toPlainText())
+        v = str(self.toPlainText())
         if self.when[0] == 0:
             space = len(v) > 0 and v[-1] == u" "
             req = Settings.get('req_space')
@@ -146,7 +146,7 @@ class Typer(QTextEdit):
                 self.when[0] = -1
 
         y = 0
-        for y in xrange(min(len(v), len(self.target)), -1, -1):
+        for y in range(min(len(v), len(self.target)), -1, -1):
             if v[0:y] == self.target[0:y]:
                 break
         lcd = v[0:y]
@@ -190,7 +190,7 @@ class Typer(QTextEdit):
                     self.setPalette(self.palettes['wrong'])
     def getMistakes(self):
         inv = collections.defaultdict(lambda: 0)
-        for p, m in self.mistakes.iteritems():
+        for p, m in self.mistakes.items():
             inv[m] += 1
         return inv
 
@@ -209,7 +209,7 @@ class Typer(QTextEdit):
 
     def getAccuracy(self):
         if self.where > 0:
-            return 1.0 - len(filter(None, self.mistake)) / self.where
+            return 1.0 - len([x for x in self.mistake if x]) / self.where
         else:
             return 0
 
@@ -300,9 +300,9 @@ class Quizzer(QWidget):
         def gen_tup(s, e):
             perch = sum(perCharacterTimes[s:e])/(e-s)
             visc = sum(map(lambda x: ((x-perch)/perch)**2, perCharacterTimes[s:e]))/(e-s)
-            return (text[s:e], perch, len(filter(None, perCharacterMistakes[s:e])), visc)
+            return (text[s:e], perch, len([x for x in perCharacterMistakes[s:e] if x]), visc)
 
-        for tri, t, m, v in [gen_tup(i, i+3) for i in xrange(0, self.typer.where-2)]:
+        for tri, t, m, v in [gen_tup(i, i+3) for i in range(0, self.typer.where-2)]:
             stats[tri].append(t, m > 0)
             visc[tri].append(v)
 
@@ -375,7 +375,7 @@ class Quizzer(QWidget):
                 return 3
             return 2
         vals = []
-        for k, s in stats.iteritems():
+        for k, s in stats.items():
             v = visc[k].median()
             vals.append((s.median(), v*100.0, now, len(s), s.flawed(), type(k), k, source))
         return vals
@@ -384,12 +384,12 @@ class Quizzer(QWidget):
         DB.executemany_('''insert into statistic
             (time, viscosity, w, count, mistakes, type, data, source) values (?, ?, ?, ?, ?, ?, ?, ?)''', vals)
         DB.executemany_('insert into mistake (w, target, mistake, count) values (?, ?, ?, ?)',
-                [(now, k[0], k[1], v) for k, v in self.typer.getMistakes().iteritems()])
+               [(now, k[0], k[1], v) for k, v in self.typer.getMistakes().items()])
 
     def createLessons(self, vals):
         # need to add of type #3 to these lessons
         # get words
-        words = filter(lambda x: x[5] == 2, vals)
+        words = [x for x in vals if x[5] == 2]
         if len(words) == 0:
             self.emit(SIGNAL("wantText"))
         else:
@@ -402,12 +402,12 @@ class Quizzer(QWidget):
             if i < (len(words) -1 // 8):
                 i = (len(words) - 1) // 8
                 i = i + 1
-            wordLessons = map(lambda x: x[6], words[0:i])
+            wordLessons = list(map(lambda x: x[6], words[0:i]))
 
-            phrases = filter(lambda x: x[5] == 3, vals)
+            phrases = [x for x in vals if x[5] == 3]
             phrases.sort(key=lambda x: (x[1], x[4]), reverse=True)
             i = len(wordLessons)
-            phraseLessons = map(lambda x: x[6], phrases[0: i])
+            phraseLessons = list(map(lambda x: x[6], phrases[0: i]))
             self.emit(SIGNAL("wantReview"), wordLessons + phraseLessons)
 
     def lessThanSpeed(self):
@@ -438,7 +438,7 @@ class Quizzer(QWidget):
         global wordCache
         if not word in wordCache:
             if Settings.get("symbol_clean"):
-                word = filter(str.isalnum, str(word)).lower()
+                word = "".join(c for c in str(word) if str.isalnum).lower()
             symbols = random.choice(Settings.get('include_symbols').split("||"));
             if (not any((c in Settings.get('stop_symbols')) for c in word)) and (len(word) > 1) and (Settings.get('title_case')) and (Settings.get('symbols')):
                 wordCache[word] = symbols.replace("0",(word[0].capitalize() + word[1:]))

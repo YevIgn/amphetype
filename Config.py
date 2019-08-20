@@ -1,11 +1,11 @@
-
 from __future__ import with_statement
 
-import cPickle
+import getpass
+import json
+
 from QtUtil import *
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-import getpass
 
 wordCache = dict()
 
@@ -93,9 +93,9 @@ class AmphSettings(QSettings):
 
     def get(self, k):
         v = self.value(k)
-        if not v.isValid():
+        if v is None or not v.isValid():
             return self.defaults[k]
-        return cPickle.loads(str(v.toString()))
+        return json.loads(str(v.toString()))
 
     def getFont(self, k):
         qf = QFont()
@@ -109,7 +109,7 @@ class AmphSettings(QSettings):
         p = self.get(k)
         if p == v:
             return
-        self.setValue(k, QVariant(cPickle.dumps(v)))
+        self.setValue(k, QVariant(json.dumps(v)))
         self.emit(SIGNAL("change"))
         self.emit(SIGNAL("change_" + k), v)
 
@@ -125,7 +125,7 @@ class SettingsColor(AmphButton):
         color = QColorDialog.getColor(Settings.getColor(self.key_), self)
         if not color.isValid():
             return
-        Settings.set(self.key_, unicode(color.name()))
+        Settings.set(self.key_, str(color.name()))
         self.updateIcon()
 
     def updateIcon(self):
@@ -142,7 +142,7 @@ class SettingsEdit(AmphEdit):
         validator = None
         if isinstance(val, float):
             validator = QDoubleValidator
-        elif isinstance(val, (int, long)):
+        elif isinstance(val, int):
             validator = QIntValidator
         if validator is None:
             self.fmt = lambda x: x
@@ -166,7 +166,7 @@ class SettingsCombo(QComboBox):
         prev = Settings.get(setting)
         self.idx2item = []
         for i in range(len(lst)):
-            if isinstance(lst[i], basestring):
+            if isinstance(lst[i], str):
                 # not a tuple, use index as key
                 k, v = i, lst[i]
             else:
@@ -236,7 +236,7 @@ class PreferenceWidget(QWidget):
 
     def setFont(self):
         font, ok = QFontDialog.getFont(Settings.getFont('typer_font'), self)
-        Settings.set("typer_font", unicode(font.toString()))
+        Settings.set("typer_font", str(font.toString()))
         self.updateFont()
 
     def updateFont(self):

@@ -74,11 +74,11 @@ class AmphModel(QAbstractItemModel):
         return self.cols
 
     def data(self, index, role=Qt.DisplayRole):
-        if not index.isValid():
-           return QVariant()
+        if index is None:
+           return None
 
         if role != Qt.DisplayRole and role != Qt.UserRole:
-            return QVariant()
+            return None
 
         row, col = index.row(), index.column()
         tab = self.findList(index.parent())
@@ -87,23 +87,23 @@ class AmphModel(QAbstractItemModel):
             return tab[row]
 
         if not (0 <= row < len(tab)) or not (0 <= col < self.cols):
-            return QVariant()
+            return None
 
         data = tab[row][col+self.hidden]
         if data is None:
-            return QVariant()
+            return None
         if self.fmt[col] is None:
-            return QVariant(data)
-        elif isinstance(self.fmt[col], basestring):
-            return QVariant(self.fmt[col] % data)
-        return QVariant(self.fmt[col](data))
+            return data
+        elif isinstance(self.fmt[col], str):
+            return self.fmt[col] % data
+        return self.fmt[col](data)
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         if role != Qt.DisplayRole:
-            return QVariant()
+            return None
         if orientation != Qt.Horizontal:
-            return QVariant()
-        return QVariant(self.head[section])
+            return None
+        return self.head[section]
 
     def sort(self, col, order=Qt.AscendingOrder):
         reverse = order != Qt.AscendingOrder
@@ -143,14 +143,14 @@ class AmphBoxLayout(QBoxLayout):
                 self.addStuff(x)
 
     def addStuff(self, x, stretch=0):
-        if isinstance(x, basestring):
+        if isinstance(x, str):
             if x[-1] == "\n":
                 self.addWidget(WWLabel(x[:-1]), stretch)
             else:
                 self.addWidget(QLabel(x), stretch)
         elif isinstance(x, list):
             self.addLayout(self.getInstance(x), stretch)
-        elif isinstance(x, (int, long)):
+        elif isinstance(x, int):
             self.addSpacing(x)
         elif x is None:
             self.addStretch(1 if stretch == 0 else stretch)
@@ -170,8 +170,8 @@ class AmphGridLayout(QGridLayout):
     def __init__(self, grid):
         QGridLayout.__init__(self)
 
-        for row in xrange(len(grid)):
-            for col in xrange(len(grid[row])):
+        for row in range(len(grid)):
+            for col in range(len(grid[row])):
                 x = grid[row][col]
                 if isinstance(x, tuple):
                     self.addStuff(x[0], (row, col), *x[1:])
@@ -183,7 +183,7 @@ class AmphGridLayout(QGridLayout):
             args = pos + span
         else:
             args = pos + span + (align, )
-        if isinstance(x, basestring):
+        if isinstance(x, str):
             if x[-1] == "\n":
                 self.addWidget(WWLabel(x[:-1]), *args)
             else:
@@ -193,7 +193,7 @@ class AmphGridLayout(QGridLayout):
         elif x is None:
             self.setColumnStretch(pos[1], span[1])
             self.setRowStretch(pos[0], span[0])
-        elif isinstance(x, (int, long)):
+        elif isinstance(x, int):
             pass
         elif isinstance(x, complex):
             self.setRowStretch(int(x.real), span[0])

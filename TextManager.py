@@ -21,7 +21,7 @@ class SourceModel(AmphModel):
 
     def populateData(self, idxs):
         if len(idxs) == 0:
-            return map(list, DB.fetchall("""
+            return list(map(list, DB.fetchall("""
             select s.rowid, s.name, t.count, r.count, r.wpm, ifelse(nullif(t.dis, t.count), 'No', 'Yes')
                     from source as s
                     left join (select source, count(*) as count, count(disabled) as dis from text group by source) as t
@@ -29,18 +29,18 @@ class SourceModel(AmphModel):
                     left join (select source, count(*) as count, avg(wpm) as wpm from result group by source) as r
                         on (t.source = r.source)
                     where s.disabled is null
-                    order by s.name"""))
+                    order by s.name""")))
 
         if len(idxs) > 1:
             return []
 
         r = self.rows[idxs[0]]
 
-        return map(list, DB.fetchall("""select t.rowid, substr(t.text, 0, 40)||"...", length(t.text), r.count, r.m, ifelse(t.disabled, 'Yes', 'No')
+        return list(map(list, DB.fetchall("""select t.rowid, substr(t.text, 0, 40)||"...", length(t.text), r.count, r.m, ifelse(t.disabled, 'Yes', 'No')
                 from (select rowid, * from text where source = ?) as t
                 left join (select text_id, count(*) as count, agg_median(wpm) as m from result group by text_id) as r
                     on (t.id = r.text_id)
-                order by t.rowid""", (r[0], )))
+                order by t.rowid""", (r[0], ))))
 
 class TextManager(QWidget):
 
@@ -112,7 +112,7 @@ A typing program that not only measures your speed and progress, but also gives 
             text = v[2]
             v = 0
             s = 0.0
-            for i in xrange(0, len(text) - 2):
+            for i in range(0, len(text) - 2):
                 t = text[i: i + 3]
                 if t in tri:
                     s += tri[t]
@@ -142,7 +142,7 @@ A typing program that not only measures your speed and progress, but also gives 
     def setImpList(self, files):
         self.sender().hide()
         self.progress.show()
-        for x in map(unicode, files):
+        for x in map(str, files):
             self.progress.setValue(0)
             fname = path.basename(x)
             lm = LessonMiner(x)
@@ -191,6 +191,7 @@ A typing program that not only measures your speed and progress, but also gives 
         q = self.addTexts("<Reviews>", [review], lesson=2, update=False)
         if q:
             v = DB.fetchone("select id, source, text from text where id = ?", self.defaultText, q)
+            print("### v %s" % (v, ))
             self.emit(SIGNAL("setText"), v)
         else:
             self.nextText()
@@ -224,12 +225,15 @@ A typing program that not only measures your speed and progress, but also gives 
                 lastResultGuid = DB.fetchone("""select r.text_id
                     from result as r left join source as s on (r.source = s.rowid)
                     where (s.discount is null) or (s.discount = 1) order by r.w desc limit 1""", None)
+                print("### lastResultGuid %s" % (lastResultGuid, ))
                 if lastResultGuid is not None:
                     lastid = DB.fetchone("select rowid from text where id = ?", lastid, lastResultGuid)
+                print("### lastid %s" % (lastid, ))
                 v = DB.fetchone("select id, source, text from text where rowid > ? and disabled is null order by rowid asc limit 1", None, lastid)
 
             if v is None:
                 v = self.defaultText
+                print("### v2 %s" % (v, ))
             self.emit(SIGNAL("setText"), v)
 
     def lastText(self):
@@ -241,9 +245,11 @@ A typing program that not only measures your speed and progress, but also gives 
             v = DB.fetchone("select id, source, text from text where id = ?", None, lastResultGuid)
         else:
             v = self.defaultText
+            print("### v3 %s" % (v, ))
 
         if v is None:
             v = self.defaultText
+            print("### v4 %s" % (v, ))
 
         self.emit(SIGNAL("setText"), v)
 
@@ -314,6 +320,8 @@ A typing program that not only measures your speed and progress, but also gives 
         q = self.model.data(idx, Qt.UserRole)
         v = DB.fetchall('select id, source, text from text where rowid = ?', (q[0], ))
 
+        if len(v) <= 0:
+            print("### v6 %s" % (v, ))
         self.cur = v[0] if len(v) > 0 else self.defaultText
         self.emit(SIGNAL("setText"), self.cur)
         self.emit(SIGNAL("gotoText"))

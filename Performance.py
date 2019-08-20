@@ -110,12 +110,12 @@ class PerformanceHistory(QWidget):
 
     def updateGraph(self):
         pc = Settings.get('graph_what')
-        y = map(lambda x: x[pc], self.model.rows)
+        y = list(map(lambda x: x[pc], self.model.rows))
 
         if Settings.get("chrono_x"):
-            x = map(lambda x: x[1], self.model.rows)
+            x = list(map(lambda x: x[1], self.model.rows))
         else:
-            x = range(len(y))
+            x = list(range(len(y)))
             x.reverse()
 
         if Settings.get("dampen_graph"):
@@ -134,7 +134,7 @@ class PerformanceHistory(QWidget):
         self.cb_source.addItem("<ALL LESSONS>")
 
         for id, v in DB.fetchall('select rowid, abbreviate(name, 30) from source order by name'):
-            self.cb_source.addItem(v, QVariant(id))
+            self.cb_source.addItem(v, id)
         self.editflag = False
 
     def updateData(self, *args):
@@ -189,7 +189,7 @@ class PerformanceHistory(QWidget):
 
         sql = sql % (where, group, n)
 
-        self.model.setData(map(list, DB.fetchall(sql)))
+        self.model.setData(list(map(list, DB.fetchall(sql))))
         self.updateGraph()
 
     def doubleClicked(self, idx):

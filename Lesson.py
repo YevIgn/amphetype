@@ -28,7 +28,7 @@ class StringListWidget(QTextEdit):
         self.append(u' '.join(lst))
 
     def getList(self):
-        return unicode(self.toPlainText()).split()
+        return str(self.toPlainText()).split()
 
     def addFromTyped(self):
         words = [x[0] for x in DB.fetchall('select distinct data from statistic where type = 2 order by random()')]
@@ -41,7 +41,7 @@ class StringListWidget(QTextEdit):
         try:
             with codecs.open(filen, "r", "utf_8_sig") as f:
                 words = f.read().split()
-        except Exception, e:
+        except Exception as e:
             QMessageBox.warning(self, "Couldn't Read File", str(e))
             return
         random.shuffle(words)
@@ -58,12 +58,12 @@ class StringListWidget(QTextEdit):
             if len(control) == 0:
                 return
             if w == 'e': # encompassing
-                stream = map(lambda x: (sum([x.count(c) for c in control]), x), words)
-                print "str:", list(stream)[0:10]
+                stream = list(map(lambda x: (sum([x.count(c) for c in control]), x), words))
+                print("str:", list(stream)[0:10])
                 preres = list(islice(ifilter(lambda x: x[0] > 0, stream), 4*n))
-                print "pre:", preres
+                print("pre:", preres)
                 preres.sort(key=lambda x: x[0], reverse=True)
-                words = map(lambda x: x[1], preres)
+                words = list(map(lambda x: x[1], preres))
             else: # similar
                 words = ifilter(lambda x:
                     0 < min([
@@ -133,7 +133,7 @@ class LessonGenerator(QWidget):
 
     def wantReview(self, words):
         Globals.pendingLessons = Globals.pendingLessons + self.generateLesson(words)
-        print Globals.pendingLessons
+        print(Globals.pendingLessons)
         if Globals.pendingLessons:
             self.emit(SIGNAL("newReview"), Globals.pendingLessons.pop())
         else:
@@ -164,11 +164,11 @@ class LessonGenerator(QWidget):
         return sentences
 
     def acceptLessons(self, name=None):
-        name = unicode(self.les_name.text())
+        name = str(self.les_name.text())
         if len(name.strip()) == 0:
             name = "<Lesson %s>" % time.strftime("%y-%m-%d %H:%M")
 
-        lessons = filter(None, [x.strip() for x in unicode(self.sample.toPlainText()).split("\n\n")])
+        lessons = [v for v in [x.strip() for x in unicode(self.sample.toPlainText()).split("\n\n")] if v]
 
         if len(lessons) == 0:
             QMessageBox.information(self, "No Lessons", "Generate some lessons before you try to add them!")
