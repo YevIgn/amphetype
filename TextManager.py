@@ -191,7 +191,6 @@ A typing program that not only measures your speed and progress, but also gives 
         q = self.addTexts("<Reviews>", [review], lesson=2, update=False)
         if q:
             v = DB.fetchone("select id, source, text from text where id = ?", self.defaultText, q)
-            print("### v %s" % (v, ))
             self.emit(SIGNAL("setText"), v)
         else:
             self.nextText()
@@ -225,15 +224,12 @@ A typing program that not only measures your speed and progress, but also gives 
                 lastResultGuid = DB.fetchone("""select r.text_id
                     from result as r left join source as s on (r.source = s.rowid)
                     where (s.discount is null) or (s.discount = 1) order by r.w desc limit 1""", None)
-                print("### lastResultGuid %s" % (lastResultGuid, ))
                 if lastResultGuid is not None:
                     lastid = DB.fetchone("select rowid from text where id = ?", lastid, lastResultGuid)
-                print("### lastid %s" % (lastid, ))
                 v = DB.fetchone("select id, source, text from text where rowid > ? and disabled is null order by rowid asc limit 1", None, lastid)
 
             if v is None:
                 v = self.defaultText
-                print("### v2 %s" % (v, ))
             self.emit(SIGNAL("setText"), v)
 
     def lastText(self):
@@ -245,11 +241,9 @@ A typing program that not only measures your speed and progress, but also gives 
             v = DB.fetchone("select id, source, text from text where id = ?", None, lastResultGuid)
         else:
             v = self.defaultText
-            print("### v3 %s" % (v, ))
 
         if v is None:
             v = self.defaultText
-            print("### v4 %s" % (v, ))
 
         self.emit(SIGNAL("setText"), v)
 
@@ -320,8 +314,6 @@ A typing program that not only measures your speed and progress, but also gives 
         q = self.model.data(idx, Qt.UserRole)
         v = DB.fetchall('select id, source, text from text where rowid = ?', (q[0], ))
 
-        if len(v) <= 0:
-            print("### v6 %s" % (v, ))
         self.cur = v[0] if len(v) > 0 else self.defaultText
         self.emit(SIGNAL("setText"), self.cur)
         self.emit(SIGNAL("gotoText"))
