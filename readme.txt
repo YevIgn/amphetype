@@ -1,3 +1,21 @@
+This is actually my fork of somebody else's fork of 'my fork of amphetype'.
+
+This fork hacks in python 3 compatibility.  I did it quickly and carelessly and
+probably missed a bunch of things.  Email me at jjl@pobox.com if you hit a
+problem.  To run it:
+
+* make a python 3 virtualenv (python -m venv ~/my/virtualenvs/amphetype)
+* activate the virtualenv (source ~/my/virtualenvs/amphetype/bin/activate)
+* in the root directory of this git repository, install: pip install -e .
+* python -c 'import Amphetype'
+
+
+amphetype is lovely, thank you tristesse!
+
+
+-oOo- the next guy's readme starts here -oOo-
+
+
 My Fork of Amphetype - A great typing program.
 It contains a bunch of small improvements that I needed to use it.
 
