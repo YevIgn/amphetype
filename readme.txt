@@ -9,6 +9,12 @@ problem.  To run it:
 * in the root directory of this git repository, install: pip install -e .
 * python -c 'import Amphetype'
 
+To run it a second time, you don't need to do the first or third steps, so:
+
+* activate the virtualenv (source ~/my/virtualenvs/amphetype/bin/activate)
+* python -c 'import Amphetype'
+
+
 
 amphetype is lovely, thank you tristesse!
 
