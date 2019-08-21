@@ -2,7 +2,9 @@ This is actually my fork of somebody else's fork of 'my fork of amphetype'.
 
 This fork hacks in python 3 compatibility.  I did it quickly and carelessly and
 probably missed a bunch of things.  Email me at jjl@pobox.com if you hit a
-problem.  To run it:
+problem.  To run it (these instructions are based on a Linux install, but these
+days I imagine the identical instructions will work on OS X and Windows too if
+you know how):
 
 * make a python 3 virtualenv (python -m venv ~/my/virtualenvs/amphetype)
 * activate the virtualenv (source ~/my/virtualenvs/amphetype/bin/activate)
@@ -14,6 +16,7 @@ To run it a second time, you don't need to do the first or third steps, so:
 * activate the virtualenv (source ~/my/virtualenvs/amphetype/bin/activate)
 * python -c 'import Amphetype'
 
+If it doesn't work, maybe you need to install PyQt4.
 
 
 amphetype is lovely, thank you tristesse!
