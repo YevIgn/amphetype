@@ -18,6 +18,10 @@ To run it a second time, you don't need to do the first or third steps, so:
 
 If it doesn't work, maybe you need to install PyQt4.
 
+You have to always run it from the same directory, or it'll get confused and
+make a new database in the new directory (by default that database is called
+"me.db").
+
 
 amphetype is lovely, thank you tristesse!
 
